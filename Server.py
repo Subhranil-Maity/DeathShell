@@ -1,5 +1,6 @@
 import socket
 import os
+import struct
 import sys
 
 
@@ -7,7 +8,7 @@ class Server:
     def __init__(self, port):
         self.port = port
         self.host = ''
-        self.BUFF = 1024
+        self.BUFF = 10240
         self.utf8 = "utf-8"
 
         self.CreateSocket()
@@ -36,10 +37,25 @@ class Server:
         while True:
             self.quere = input()
             if len(str.encode(self.quere)) > 0:
-                self.conn.send(str.encode(self.quere))
-                self.responce = str(self.conn.recv(self.BUFF), self.utf8)
-                print(self.responce, end="")
-            elif self.quere == 'exit':
+                self.Send(self.quere)
+                # self.responce = str(self.conn.recv(self.BUFF), self.utf8)
+                print(str(self.Recv()), end="")
+            elif self.quere == 'cls':
+                pass
+            elif self.quere == "exit":
+                print("exiting")
                 self.conn.close()
-
+                self.socket.close()
+                self.Send("exited")
+                sys.exit(0)
+            else:
+                continue
+    def Recv(self):
+        self.BUFF = int(self.conn.recv(self.BUFF).decode(self.utf8))
+        res = str(self.conn.recv(self.BUFF), self.utf8)
+        self.BUFF = 10240
+        return res
+    def Send(self, msg):
+        self.conn.send(str.encode(str(sys.getsizeof(msg))))
+        self.conn.send(str.encode(msg))
 Server(5555)
